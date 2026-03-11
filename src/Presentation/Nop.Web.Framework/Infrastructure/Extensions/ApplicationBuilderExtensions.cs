@@ -501,7 +501,7 @@ public static class ApplicationBuilderExtensions
             if (!string.IsNullOrEmpty(hostingConfig.ForwardedProtoHeaderName))
                 options.ForwardedProtoHeaderName = hostingConfig.ForwardedProtoHeaderName;
 
-            options.KnownNetworks.Clear();
+            options.KnownIPNetworks.Clear();
             options.KnownProxies.Clear();
 
             if (!string.IsNullOrEmpty(hostingConfig.KnownProxies))
@@ -521,12 +521,12 @@ public static class ApplicationBuilderExtensions
                     if (ipNetParts.Length == 2)
                     {
                         if (IPAddress.TryParse(ipNetParts[0], out var ip) && int.TryParse(ipNetParts[1], out var length))
-                            options.KnownNetworks.Add(new IPNetwork(ip, length));
+                            options.KnownIPNetworks.Add(new System.Net.IPNetwork(ip, length));
                     }
                 }
             }
 
-            if (options.KnownProxies.Count > 1 || options.KnownNetworks.Count > 1)
+            if (options.KnownProxies.Count > 1 || options.KnownIPNetworks.Count > 1)
                 options.ForwardLimit = null; //disable the limit, because KnownProxies is configured
 
             //configure forwarding

@@ -500,7 +500,7 @@ public partial class LocalizationService : ILocalizationService
     {
         ArgumentNullException.ThrowIfNull(language);
 
-        if (xmlStreamReader.EndOfStream)
+        if (xmlStreamReader.Peek() == -1)
             return;
 
         var lsNamesList = new Dictionary<string, LocaleStringResource>();

@@ -122,7 +122,7 @@ public partial class StateProvinceService : IStateProvinceService
                 //we should sort states by localized names when they have the same display order
                 stateProvinces = await stateProvinces.ToAsyncEnumerable()
                     .OrderBy(c => c.DisplayOrder)
-                    .ThenByAwait(async c => await _localizationService.GetLocalizedAsync(c, x => x.Name, languageId))
+                    .ThenBy(async (c, ct) => await _localizationService.GetLocalizedAsync(c, x => x.Name, languageId))
                     .ToListAsync();
 
             return stateProvinces;

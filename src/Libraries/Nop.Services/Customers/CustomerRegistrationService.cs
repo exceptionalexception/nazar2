@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Routing;
 using Nop.Core;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Events;
@@ -24,7 +26,7 @@ public partial class CustomerRegistrationService : ICustomerRegistrationService
     #region Fields
 
     protected readonly CustomerSettings _customerSettings;
-    protected readonly IActionContextAccessor _actionContextAccessor;
+    protected readonly IHttpContextAccessor _httpContextAccessor;
     protected readonly IAuthenticationService _authenticationService;
     protected readonly ICustomerActivityService _customerActivityService;
     protected readonly ICustomerService _customerService;
@@ -49,7 +51,7 @@ public partial class CustomerRegistrationService : ICustomerRegistrationService
     #region Ctor
 
     public CustomerRegistrationService(CustomerSettings customerSettings,
-        IActionContextAccessor actionContextAccessor,
+        IHttpContextAccessor httpContextAccessor,
         IAuthenticationService authenticationService,
         ICustomerActivityService customerActivityService,
         ICustomerService customerService,
@@ -70,7 +72,7 @@ public partial class CustomerRegistrationService : ICustomerRegistrationService
         RewardPointsSettings rewardPointsSettings)
     {
         _customerSettings = customerSettings;
-        _actionContextAccessor = actionContextAccessor;
+        _httpContextAccessor = httpContextAccessor;
         _authenticationService = authenticationService;
         _customerActivityService = customerActivityService;
         _customerService = customerService;
@@ -450,7 +452,8 @@ public partial class CustomerRegistrationService : ICustomerRegistrationService
         await _customerActivityService.InsertActivityAsync(customer, "PublicStore.SuccessfulLogin",
             await _localizationService.GetResourceAsync("ActivityLog.PublicStore.Login.Success"), customer);
 
-        var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+        var actionContext = new ActionContext(_httpContextAccessor.HttpContext, _httpContextAccessor.HttpContext.GetRouteData(), new ActionDescriptor());
+        var urlHelper = _urlHelperFactory.GetUrlHelper(actionContext);
 
         //redirect to the return URL if it's specified
         if (!string.IsNullOrEmpty(returnUrl) && urlHelper.IsLocalUrl(returnUrl))

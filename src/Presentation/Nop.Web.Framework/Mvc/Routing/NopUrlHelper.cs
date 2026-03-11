@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Routing;
 using Nop.Core;
@@ -23,7 +24,7 @@ public partial class NopUrlHelper : INopUrlHelper
     #region Fields
 
     protected readonly CatalogSettings _catalogSettings;
-    protected readonly IActionContextAccessor _actionContextAccessor;
+    protected readonly IHttpContextAccessor _httpContextAccessor;
     protected readonly ICategoryService _categoryService;
     protected readonly IManufacturerService _manufacturerService;
     protected readonly IStoreContext _storeContext;
@@ -36,7 +37,7 @@ public partial class NopUrlHelper : INopUrlHelper
     #region Ctor
 
     public NopUrlHelper(CatalogSettings catalogSettings,
-        IActionContextAccessor actionContextAccessor,
+        IHttpContextAccessor httpContextAccessor,
         ICategoryService categoryService,
         IManufacturerService manufacturerService,
         IStoreContext storeContext,
@@ -45,7 +46,7 @@ public partial class NopUrlHelper : INopUrlHelper
         IUrlRecordService urlRecordService)
     {
         _catalogSettings = catalogSettings;
-        _actionContextAccessor = actionContextAccessor;
+        _httpContextAccessor = httpContextAccessor;
         _categoryService = categoryService;
         _manufacturerService = manufacturerService;
         _storeContext = storeContext;
@@ -200,10 +201,11 @@ public partial class NopUrlHelper : INopUrlHelper
     /// </returns>
     public virtual string RouteUrl(string routeName, object values = null, string protocol = null, string host = null, string fragment = null)
     {
-        if (_actionContextAccessor.ActionContext is null)
+        if (_httpContextAccessor.HttpContext is null)
             return string.Empty;
 
-        var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+        var actionContext = new ActionContext(_httpContextAccessor.HttpContext, _httpContextAccessor.HttpContext.GetRouteData(), new ActionDescriptor());
+        var urlHelper = _urlHelperFactory.GetUrlHelper(actionContext);
 
         return urlHelper.RouteUrl(routeName, values, protocol, host, fragment);
     }

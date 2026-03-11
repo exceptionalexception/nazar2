@@ -1762,7 +1762,8 @@ public partial class ProductService : IProductService
                 {
                     var totalStockByAllCombinations = await (await _productAttributeService.GetAllProductAttributeCombinationsAsync(product.Id))
                         .ToAsyncEnumerable()
-                        .SumAsync(c => c.StockQuantity);
+                        .Select(c => c.StockQuantity)
+                        .SumAsync();
 
                     await ApplyLowStockActivityAsync(product, totalStockByAllCombinations);
                 }

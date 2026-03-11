@@ -1,9 +1,11 @@
 ﻿using System.Globalization;
 using System.Net;
 using System.Text;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Routing;
 using Nop.Core;
 using Nop.Core.Domain;
 using Nop.Core.Domain.Blogs;
@@ -54,7 +56,7 @@ public partial class MessageTokenProvider : IMessageTokenProvider
 
     protected readonly CatalogSettings _catalogSettings;
     protected readonly CurrencySettings _currencySettings;
-    protected readonly IActionContextAccessor _actionContextAccessor;
+    protected readonly IHttpContextAccessor _httpContextAccessor;
     protected readonly IAddressService _addressService;
     protected readonly IAttributeFormatter<AddressAttribute, AddressAttributeValue> _addressAttributeFormatter;
     protected readonly IAttributeFormatter<CustomerAttribute, CustomerAttributeValue> _customerAttributeFormatter;
@@ -98,7 +100,7 @@ public partial class MessageTokenProvider : IMessageTokenProvider
 
     public MessageTokenProvider(CatalogSettings catalogSettings,
         CurrencySettings currencySettings,
-        IActionContextAccessor actionContextAccessor,
+        IHttpContextAccessor httpContextAccessor,
         IAddressService addressService,
         IAttributeFormatter<AddressAttribute, AddressAttributeValue> addressAttributeFormatter,
         IAttributeFormatter<CustomerAttribute, CustomerAttributeValue> customerAttributeFormatter,
@@ -136,7 +138,7 @@ public partial class MessageTokenProvider : IMessageTokenProvider
     {
         _catalogSettings = catalogSettings;
         _currencySettings = currencySettings;
-        _actionContextAccessor = actionContextAccessor;
+        _httpContextAccessor = httpContextAccessor;
         _addressService = addressService;
         _addressAttributeFormatter = addressAttributeFormatter;
         _customerAttributeFormatter = customerAttributeFormatter;
@@ -988,7 +990,8 @@ public partial class MessageTokenProvider : IMessageTokenProvider
                 throw new Exception("Store URL cannot be empty");
 
             //generate the relative URL
-            var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+            var actionContext = new ActionContext(_httpContextAccessor.HttpContext, _httpContextAccessor.HttpContext.GetRouteData(), new ActionDescriptor());
+            var urlHelper = _urlHelperFactory.GetUrlHelper(actionContext);
             var url = urlHelper.RouteUrl(routeName, routeValues);
 
             //compose the result

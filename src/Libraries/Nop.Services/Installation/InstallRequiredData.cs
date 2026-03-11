@@ -209,7 +209,7 @@ public partial class InstallationService
             return result;
         }
 
-        if (xmlStreamReader.EndOfStream)
+        if (xmlStreamReader.Peek() == -1)
             return;
 
         var lsNamesList = new Dictionary<string, LocaleStringResource>();
@@ -254,9 +254,9 @@ public partial class InstallationService
     {
         var count = 0;
         using var reader = new StreamReader(stream);
-        while (!reader.EndOfStream)
+        string line;
+        while ((line = await reader.ReadLineAsync()) != null)
         {
-            var line = await reader.ReadLineAsync();
             if (string.IsNullOrWhiteSpace(line))
                 continue;
             var tmp = line.Split(',');

@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Hosting;
@@ -20,7 +22,6 @@ public partial class WebHelper : IWebHelper
 {
     #region Fields  
 
-    protected readonly IActionContextAccessor _actionContextAccessor;
     protected readonly IHostApplicationLifetime _hostApplicationLifetime;
     protected readonly IHttpContextAccessor _httpContextAccessor;
     protected readonly IUrlHelperFactory _urlHelperFactory;
@@ -30,13 +31,11 @@ public partial class WebHelper : IWebHelper
 
     #region Ctor
 
-    public WebHelper(IActionContextAccessor actionContextAccessor,
-        IHostApplicationLifetime hostApplicationLifetime,
+    public WebHelper(IHostApplicationLifetime hostApplicationLifetime,
         IHttpContextAccessor httpContextAccessor,
         IUrlHelperFactory urlHelperFactory,
         Lazy<IStoreContext> storeContext)
     {
-        _actionContextAccessor = actionContextAccessor;
         _hostApplicationLifetime = hostApplicationLifetime;
         _httpContextAccessor = httpContextAccessor;
         _urlHelperFactory = urlHelperFactory;
@@ -237,9 +236,9 @@ public partial class WebHelper : IWebHelper
             return url;
 
         //prepare URI object
-        var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+        var actionContext = new ActionContext(_httpContextAccessor.HttpContext, _httpContextAccessor.HttpContext.GetRouteData(), new ActionDescriptor());
+        var urlHelper = _urlHelperFactory.GetUrlHelper(actionContext);
         var isLocalUrl = urlHelper.IsLocalUrl(url);
-
         var uriStr = url;
         if (isLocalUrl)
         {
@@ -285,7 +284,8 @@ public partial class WebHelper : IWebHelper
             return url;
 
         //prepare URI object
-        var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+        var actionContext = new ActionContext(_httpContextAccessor.HttpContext, _httpContextAccessor.HttpContext.GetRouteData(), new ActionDescriptor());
+        var urlHelper = _urlHelperFactory.GetUrlHelper(actionContext);
         var isLocalUrl = urlHelper.IsLocalUrl(url);
         var uri = new Uri(isLocalUrl ? $"{GetStoreLocation().TrimEnd('/')}{url}" : url, UriKind.Absolute);
 

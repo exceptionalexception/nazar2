@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Routing;
 using Nop.Core;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Localization;
@@ -25,7 +26,6 @@ public partial class ExternalAuthenticationService : IExternalAuthenticationServ
 
     protected readonly CustomerSettings _customerSettings;
     protected readonly ExternalAuthenticationSettings _externalAuthenticationSettings;
-    protected readonly IActionContextAccessor _actionContextAccessor;
     protected readonly IAuthenticationPluginManager _authenticationPluginManager;
     protected readonly ICustomerRegistrationService _customerRegistrationService;
     protected readonly ICustomerService _customerService;
@@ -46,7 +46,6 @@ public partial class ExternalAuthenticationService : IExternalAuthenticationServ
 
     public ExternalAuthenticationService(CustomerSettings customerSettings,
         ExternalAuthenticationSettings externalAuthenticationSettings,
-        IActionContextAccessor actionContextAccessor,
         IAuthenticationPluginManager authenticationPluginManager,
         ICustomerRegistrationService customerRegistrationService,
         ICustomerService customerService,
@@ -63,7 +62,6 @@ public partial class ExternalAuthenticationService : IExternalAuthenticationServ
     {
         _customerSettings = customerSettings;
         _externalAuthenticationSettings = externalAuthenticationSettings;
-        _actionContextAccessor = actionContextAccessor;
         _authenticationPluginManager = authenticationPluginManager;
         _customerRegistrationService = customerRegistrationService;
         _customerService = customerService;
@@ -247,7 +245,8 @@ public partial class ExternalAuthenticationService : IExternalAuthenticationServ
     /// <returns>Result of an authentication</returns>
     protected virtual IActionResult SuccessfulAuthentication(string returnUrl)
     {
-        var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+        var actionContext = new ActionContext(_httpContextAccessor.HttpContext, _httpContextAccessor.HttpContext.GetRouteData(), new ActionDescriptor());
+        var urlHelper = _urlHelperFactory.GetUrlHelper(actionContext);
 
         //redirect to the return URL if it's specified
         if (!string.IsNullOrEmpty(returnUrl) && urlHelper.IsLocalUrl(returnUrl))

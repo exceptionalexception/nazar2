@@ -1,7 +1,9 @@
 ﻿using System.Net;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.AspNetCore.Routing;
 using Nop.Core;
 using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
@@ -35,7 +37,7 @@ public partial class ShoppingCartService : IShoppingCartService
 
     protected readonly CatalogSettings _catalogSettings;
     protected readonly IAclService _aclService;
-    protected readonly IActionContextAccessor _actionContextAccessor;
+    protected readonly IHttpContextAccessor _httpContextAccessor;
     protected readonly IAttributeParser<CheckoutAttribute, CheckoutAttributeValue> _checkoutAttributeParser;
     protected readonly IAttributeService<CheckoutAttribute, CheckoutAttributeValue> _checkoutAttributeService;
     protected readonly ICurrencyService _currencyService;
@@ -71,7 +73,7 @@ public partial class ShoppingCartService : IShoppingCartService
 
     public ShoppingCartService(CatalogSettings catalogSettings,
         IAclService aclService,
-        IActionContextAccessor actionContextAccessor,
+        IHttpContextAccessor httpContextAccessor,
         IAttributeParser<CheckoutAttribute, CheckoutAttributeValue> checkoutAttributeParser,
         IAttributeService<CheckoutAttribute, CheckoutAttributeValue> checkoutAttributeService,
         ICurrencyService currencyService,
@@ -103,7 +105,7 @@ public partial class ShoppingCartService : IShoppingCartService
     {
         _catalogSettings = catalogSettings;
         _aclService = aclService;
-        _actionContextAccessor = actionContextAccessor;
+        _httpContextAccessor = httpContextAccessor;
         _checkoutAttributeParser = checkoutAttributeParser;
         _checkoutAttributeService = checkoutAttributeService;
         _currencyService = currencyService;
@@ -258,7 +260,8 @@ public partial class ShoppingCartService : IShoppingCartService
             .Select(g => new { Product = g.First(), Count = g.Count() });
 
         //get warnings
-        var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+        var actionContext = new ActionContext(_httpContextAccessor.HttpContext, _httpContextAccessor.HttpContext.GetRouteData(), new ActionDescriptor());
+        var urlHelper = _urlHelperFactory.GetUrlHelper(actionContext);
         var warningLocale = await _localizationService.GetResourceAsync("ShoppingCart.RequiredProductWarning");
         foreach (var requiredProduct in finalRequiredProducts)
         {

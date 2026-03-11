@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -225,19 +224,11 @@ public partial class BaseNopTest
 
         services.AddSingleton(httpContextAccessor.Object);
 
-        var actionContextAccessor = new Mock<IActionContextAccessor>();
-        actionContextAccessor.Setup(x => x.ActionContext)
-            .Returns(new ActionContext(httpContext, httpContext.GetRouteData(), new ActionDescriptor()));
-
-        services.AddSingleton(actionContextAccessor.Object);
-
         var urlHelperFactory = new Mock<IUrlHelperFactory>();
-        var urlHelper = new NopTestUrlHelper(actionContextAccessor.Object.ActionContext);
+        var urlHelper = new NopTestUrlHelper(new ActionContext(httpContext, httpContext.GetRouteData(), new ActionDescriptor()));
 
         urlHelperFactory.Setup(x => x.GetUrlHelper(It.IsAny<ActionContext>()))
             .Returns(urlHelper);
-
-        services.AddTransient(_ => actionContextAccessor.Object);
 
         services.AddSingleton(urlHelperFactory.Object);
 
